@@ -1,13 +1,11 @@
 const Job = require('../models/Job');
-const mongoose = require('mongoose');
+const connectDB = require('../db');
 
 // Get all published jobs
 const getJobs = async (req, res) => {
   try {
-    // Check if mongoose is connected
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error('Database not connected');
-    }
+    // Ensure database connection
+    await connectDB();
     
     const jobs = await Job.find({ status: 'published' });
     res.status(200).json(jobs);
@@ -15,8 +13,7 @@ const getJobs = async (req, res) => {
     console.error('Error in getJobs:', error);
     res.status(500).json({ 
       message: 'Error fetching jobs',
-      error: error.message,
-      connectionState: mongoose.connection.readyState
+      error: error.message
     });
   }
 };
