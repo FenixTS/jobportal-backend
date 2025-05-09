@@ -7,8 +7,11 @@ const connectDB = async () => {
       useUnifiedTopology: true,
       retryWrites: true,
       w: 'majority',
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      maxPoolSize: 10,
+      minPoolSize: 5,
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {

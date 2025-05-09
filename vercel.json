@@ -19,6 +19,6 @@
     }
   ],
   "env": {
-    "MONGO_URI": "mongodb+srv://fenixts53:TIIFmOwMtZjDBVcA@fenix.vctwzl0.mongodb.net/jobportal"
+    "MONGO_URI": "mongodb+srv://fenixts53:TIIFmOwMtZjDBVcA@fenix.vctwzl0.mongodb.net/jobportal?retryWrites=true&w=majority"
   }
 }
