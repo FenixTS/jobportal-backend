@@ -9,15 +9,10 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "server.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
-      }
+      "dest": "server.js"
     }
   ],
   "env": {
-    "MONGO_URI": "mongodb+srv://fenixts53:TIIFmOwMtZjDBVcA@fenix.vctwzl0.mongodb.net/jobportal?retryWrites=true&w=majority"
+    "MONGO_URI": "mongodb+srv://fenixts53:TIIFmOwMtZjDBVcA@fenix.vctwzl0.mongodb.net/jobbase?retryWrites=true&w=majority"
   }
 } 
