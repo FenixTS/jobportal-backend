@@ -1,16 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const path = require('path');
 const jobRoutes = require('./routes/jobRoutes');
 const connectDB = require('./config/db');
-const mongoose = require('mongoose');
-
-// Load environment variables
-dotenv.config();
-
-// Connect to MongoDB
-connectDB();
 
 const app = express();
 
@@ -25,11 +18,20 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/jobs', jobRoutes);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
+app.get('/health', async (req, res) => {
+  try {
+    await connectDB();
+    res.status(200).json({ 
+      status: 'ok',
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'error',
+      database: 'disconnected',
+      error: error.message 
+    });
+  }
 });
 
 // Start server
