@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jobController = require('../controllers/jobController');
 
-// Note: These routes will be prefixed with /api/jobs
+// These routes will be mounted at /api/jobs
 router.get('/', jobController.getJobs);
 router.post('/', jobController.createJob);
 router.get('/:id', jobController.getJob);

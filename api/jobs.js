@@ -39,7 +39,9 @@ process.on('SIGINT', async () => {
 
 // Import routes
 const jobRoutes = require('../routes/jobRoutes');
-app.use('/api/jobs', jobRoutes);
+
+// Mount routes
+app.use('/', jobRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
