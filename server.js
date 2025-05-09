@@ -14,24 +14,30 @@ app.use(express.json());
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Initialize database connection
+let isConnected = false;
+
+const initializeDB = async () => {
+  try {
+    await connectDB();
+    isConnected = true;
+    console.log('MongoDB Connected');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+  }
+};
+
+initializeDB();
+
 // Routes
 app.use('/api/jobs', jobRoutes);
 
 // Health check endpoint
-app.get('/health', async (req, res) => {
-  try {
-    await connectDB();
-    res.status(200).json({ 
-      status: 'ok',
-      database: 'connected'
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      status: 'error',
-      database: 'disconnected',
-      error: error.message 
-    });
-  }
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok',
+    database: isConnected ? 'connected' : 'disconnected'
+  });
 });
 
 // Start server
