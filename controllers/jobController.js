@@ -1,132 +1,103 @@
 const Job = require('../models/Job');
-const connectDB = require('../config/db');
 
-// Get all published jobs
-const getJobs = async (req, res) => {
+// Get all jobs
+exports.getJobs = async (req, res) => {
   try {
-    // Ensure database connection
-    await connectDB();
+    const jobs = await Job.find().sort({ createdAt: -1 });
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Create a new job
+exports.createJob = async (req, res) => {
+  try {
+    // Validate required fields
+    const requiredFields = ['company', 'position', 'experience', 'location', 'workType', 'salary', 'description'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
     
-    const jobs = await Job.find({ status: 'published' });
-    res.status(200).json(jobs);
-  } catch (error) {
-    console.error('Error in getJobs:', error);
-    res.status(500).json({ 
-      message: 'Error fetching jobs',
-      error: error.message 
-    });
-  }
-};
-
-// Get all draft jobs
-const getDrafts = async (req, res) => {
-  try {
-    await connectDB();
-    const drafts = await Job.find({ status: 'draft' });
-    res.status(200).json(drafts);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching drafts' });
-  }
-};
-
-// Get single job by ID
-const getJobById = async (req, res) => {
-  try {
-    await connectDB();
-    const job = await Job.findById(req.params.id);
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: `Missing required fields: ${missingFields.join(', ')}`
+      });
     }
-    res.status(200).json(job);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching job' });
-  }
-};
 
-// Create new job
-const createJob = async (req, res) => {
-  try {
-    await connectDB();
-    const {
-      company,
-      position,
-      location,
-      workType,
-      experience,
-      salary,
-      deadline,
-      description,
-      status
-    } = req.body;
+    // Set default deadline if not provided (30 days from now)
+    const deadline = req.body.deadline ? new Date(req.body.deadline) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    const logoPath = req.file ? `/uploads/${req.file.filename}` : '';
+    // Create new job instance
+    const jobData = {
+      company: req.body.company,
+      position: req.body.position,
+      experience: req.body.experience,
+      location: req.body.location,
+      workType: req.body.workType,
+      salary: req.body.salary,
+      description: Array.isArray(req.body.description) ? req.body.description : [req.body.description],
+      logo: req.body.logo || '../images/default-logo.png',
+      deadline: deadline
+    };
 
-    const newJob = new Job({
-      company,
-      position,
-      location,
-      workType,
-      experience,
-      salary,
-      deadline,
-      description: Array.isArray(description) ? description : [description],
-      status: status || 'published',
-      logo: logoPath
-    });
-
-    const savedJob = await newJob.save();
+    const job = new Job(jobData);
+    const savedJob = await job.save();
     res.status(201).json(savedJob);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to create job' });
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        message: 'Validation Error',
+        errors: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Update job
-const updateJob = async (req, res) => {
+// Get a single job
+exports.getJob = async (req, res) => {
   try {
-    await connectDB();
     const job = await Job.findById(req.params.id);
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
+    res.json(job);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-    const updatedData = { ...req.body };
-    if (req.file) {
-      updatedData.logo = `/uploads/${req.file.filename}`;
-    }
-
-    const updatedJob = await Job.findByIdAndUpdate(
+// Update a job
+exports.updateJob = async (req, res) => {
+  try {
+    const job = await Job.findByIdAndUpdate(
       req.params.id,
-      updatedData,
-      { new: true }
+      req.body,
+      { new: true, runValidators: true }
     );
-
-    res.status(200).json(updatedJob);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to update job' });
-  }
-};
-
-// Delete job
-const deleteJob = async (req, res) => {
-  try {
-    await connectDB();
-    const job = await Job.findById(req.params.id);
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
-    await job.deleteOne();
-    res.status(200).json({ message: 'Job deleted successfully' });
+    res.json(job);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete job' });
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        message: 'Validation Error',
+        errors: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    res.status(400).json({ message: error.message });
   }
 };
 
-module.exports = {
-  getJobs,
-  getDrafts,
-  getJobById,
-  createJob,
-  updateJob,
-  deleteJob
+// Delete a job
+exports.deleteJob = async (req, res) => {
+  try {
+    const job = await Job.findByIdAndDelete(req.params.id);
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+    res.json({ message: 'Job deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 }; 

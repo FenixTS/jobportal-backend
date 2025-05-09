@@ -1,54 +1,70 @@
-require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const jobRoutes = require('./routes/jobRoutes');
-const connectDB = require('./config/db');
+require('dotenv').config();
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-// Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Initialize database connection
-let isConnected = false;
+// MongoDB Connection with updated options
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+})
+.then(() => {
+  console.log('MongoDB Connected Successfully');
+})
+.catch(err => {
+  console.error('MongoDB Connection Error:', err);
+  process.exit(1);
+});
 
-const initializeDB = async () => {
+// Routes
+app.use('/api/jobs', require('./routes/jobRoutes'));
+app.use('/api/drafts', require('./routes/draftRoutes'));
+app.use('/api/upload', require('./routes/uploadRoutes'));
+
+// Function to find an available port
+const findAvailablePort = async (startPort) => {
+  const net = require('net');
+  
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        resolve(findAvailablePort(startPort + 1));
+      } else {
+        reject(err);
+      }
+    });
+    
+    server.listen(startPort, () => {
+      server.close(() => {
+        resolve(startPort);
+      });
+    });
+  });
+};
+
+// Start server with dynamic port
+const startServer = async () => {
   try {
-    await connectDB();
-    isConnected = true;
-    console.log('MongoDB Connected');
+    const port = await findAvailablePort(process.env.PORT || 5000);
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('Failed to start server:', error);
+    process.exit(1);
   }
 };
 
-initializeDB();
-
-// Routes
-app.use('/api/jobs', jobRoutes);
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok',
-    database: isConnected ? 'connected' : 'disconnected'
-  });
-});
-
-// Start server
-const PORT = process.env.PORT || 5000;
-
-// Only start the server if we're not in a serverless environment
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
-// Export the Express API
-module.exports = app; 
+startServer(); 
