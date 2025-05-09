@@ -3,10 +3,16 @@ const Job = require('../models/Job');
 // Get all jobs
 exports.getJobs = async (req, res) => {
   try {
+    console.log('Fetching jobs...');
     const jobs = await Job.find().sort({ createdAt: -1 });
+    console.log(`Found ${jobs.length} jobs`);
     res.json(jobs);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error in getJobs:', error);
+    res.status(500).json({ 
+      message: 'Error fetching jobs',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
