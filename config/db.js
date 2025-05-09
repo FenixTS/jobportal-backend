@@ -3,9 +3,7 @@ const mongoose = require('mongoose');
 const MONGODB_URI = process.env.MONGO_URI;
 
 if (!MONGODB_URI) {
-  console.error('MONGO_URI is not defined in environment variables');
-  console.error('Current environment variables:', process.env);
-  process.exit(1);
+  throw new Error('Please define the MONGO_URI environment variable');
 }
 
 let cached = global.mongoose;
