@@ -1,11 +1,13 @@
 const Job = require('../models/Job');
 const connectDB = require('../db');
+const mongoose = require('mongoose');
 
 // Get all published jobs
 const getJobs = async (req, res) => {
   try {
-    // Ensure database connection
-    await connectDB();
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error('Database not connected');
+    }
     
     const jobs = await Job.find({ status: 'published' });
     res.status(200).json(jobs);
