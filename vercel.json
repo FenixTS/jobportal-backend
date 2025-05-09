@@ -18,6 +18,6 @@
     }
   ],
   "env": {
-    "MONGO_URI": "mongodb+srv://fenixts53:TIIFmOwMtZjDBVcA@fenix.vctwzl0.mongodb.net/jobportal?retryWrites=true&w=majority&maxPoolSize=10&minPoolSize=5&serverSelectionTimeoutMS=30000"
+    "MONGO_URI": "mongodb+srv://fenixts53:TIIFmOwMtZjDBVcA@fenix.vctwzl0.mongodb.net/jobportal?retryWrites=true&w=majority"
   }
 } 

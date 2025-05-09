@@ -28,7 +28,8 @@ async function connectDB() {
       socketTimeoutMS: 45000,
       connectTimeoutMS: 30000,
       retryWrites: true,
-      w: 'majority'
+      w: 'majority',
+      family: 4
     };
 
     console.log('Attempting to connect to MongoDB...');
@@ -53,5 +54,18 @@ async function connectDB() {
 
   return cached.conn;
 }
+
+// Handle connection errors
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
+});
+
+mongoose.connection.on('connected', () => {
+  console.log('MongoDB connected');
+});
 
 module.exports = connectDB; 
