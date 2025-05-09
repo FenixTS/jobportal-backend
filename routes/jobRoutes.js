@@ -7,8 +7,7 @@ const {
   getJobById,
   createJob,
   updateJob,
-  deleteJob,
-  getLogoUrl
+  deleteJob
 } = require('../controllers/jobController');
 
 const router = express.Router();
@@ -31,7 +30,6 @@ const upload = multer({ storage });
 router.get('/', getJobs);                    // Get all published jobs
 router.get('/drafts', getDrafts);            // Get all draft jobs
 router.get('/:id', getJobById);              // Get single job by ID
-router.get('/:id/logo', getLogoUrl);         // Get logo URL
 router.post('/', upload.single('logo'), createJob);  // Create new job/draft
 router.put('/:id', upload.single('logo'), updateJob); // Update job
 router.delete('/:id', deleteJob);            // Delete job

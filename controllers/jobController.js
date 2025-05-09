@@ -1,22 +1,13 @@
 const Job = require('../models/Job');
-const connectDB = require('../db');
-const mongoose = require('mongoose');
 
 // Get all published jobs
 const getJobs = async (req, res) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error('Database not connected');
-    }
-    
     const jobs = await Job.find({ status: 'published' });
     res.status(200).json(jobs);
   } catch (error) {
     console.error('Error in getJobs:', error);
-    res.status(500).json({ 
-      message: 'Error fetching jobs',
-      error: error.message
-    });
+    res.status(500).json({ message: 'Error fetching jobs' });
   }
 };
 
@@ -43,7 +34,7 @@ const getJobById = async (req, res) => {
   }
 };
 
-// Create new job/draft
+// Create new job
 const createJob = async (req, res) => {
   try {
     const {
@@ -88,16 +79,17 @@ const updateJob = async (req, res) => {
       return res.status(404).json({ message: 'Job not found' });
     }
 
-    const updatedData = {
-      ...req.body,
-      logo: req.file ? `/uploads/${req.file.filename}` : job.logo
-    };
+    const updatedData = { ...req.body };
+    if (req.file) {
+      updatedData.logo = `/uploads/${req.file.filename}`;
+    }
 
     const updatedJob = await Job.findByIdAndUpdate(
       req.params.id,
       updatedData,
       { new: true }
     );
+
     res.status(200).json(updatedJob);
   } catch (error) {
     res.status(500).json({ message: 'Failed to update job' });
@@ -118,34 +110,11 @@ const deleteJob = async (req, res) => {
   }
 };
 
-// Get logo URL
-const getLogoUrl = async (req, res) => {
-  try {
-    const job = await Job.findById(req.params.id);
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
-    
-    if (!job.logo) {
-      return res.status(404).json({ message: 'No logo found for this job' });
-    }
-
-    // Construct the full URL
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const logoUrl = `${baseUrl}${job.logo}`;
-    
-    res.status(200).json({ logoUrl });
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching logo URL' });
-  }
-};
-
 module.exports = {
   getJobs,
   getDrafts,
   getJobById,
   createJob,
   updateJob,
-  deleteJob,
-  getLogoUrl
+  deleteJob
 };
