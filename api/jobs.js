@@ -39,7 +39,12 @@ process.on('SIGINT', async () => {
 
 // Import routes
 const jobRoutes = require('../routes/jobRoutes');
-app.use('/', jobRoutes);
+app.use('/api/jobs', jobRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -48,6 +53,14 @@ app.use((err, req, res, next) => {
     status: 'error',
     message: 'Something went wrong!',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: 'Route not found'
   });
 });
 
